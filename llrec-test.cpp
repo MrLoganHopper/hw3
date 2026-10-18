@@ -67,6 +67,16 @@ void dealloc(Node* head)
 //   function object struct declarations
 // -----------------------------------------------
 
+struct IsOdd {
+    bool operator()(int v) { return v % 2 != 0; }
+};
+
+struct GreaterThan {
+    int limit;
+    GreaterThan(int l) : limit(l) {}
+    bool operator()(int v) { return v > limit; }
+};
+
 
 
 
@@ -86,6 +96,24 @@ int main(int argc, char* argv[])
     print(head);
 
     // Test out your linked list code
+    Node* smaller = (Node*) 0x1;  // garbage on purpose
+    Node* larger  = (Node*) 0x1;
+    llpivot(head, smaller, larger, 10);
+    cout << "Pivot 10 -> head: "; print(head);
+    cout << "  smaller: "; print(smaller);
+    cout << "  larger:  "; print(larger);
+    dealloc(smaller);
+    dealloc(larger);
+
+    head = readList(argv[1]);
+    head = llfilter(head, IsOdd());
+    cout << "Filter odds: "; print(head);
+    dealloc(head);
+
+    head = readList(argv[1]);
+    head = llfilter(head, GreaterThan(10));
+    cout << "Filter > 10: "; print(head);
+    dealloc(head);
 
 
 

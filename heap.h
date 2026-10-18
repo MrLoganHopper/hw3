@@ -2,6 +2,8 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
+#include <vector>
+#include <algorithm>
 
 template <typename T, typename PComparator = std::less<T> >
 class Heap
@@ -61,13 +63,86 @@ public:
 
 private:
   /// Add whatever helper functions and data members you need below
+  void trickleUp(size_t idx);
+  void trickleDown(size_t idx);
 
-
-
-
+  std::vector<T> data_;
+  int m_;
+  PComparator comp_;
 };
 
 // Add implementation of member functions here
+
+// Layout: root at index 0. For node i, children are m*i+1 ... m*i+m
+// and the parent is (i-1)/m.
+
+template <typename T, typename PComparator>
+Heap<T,PComparator>::Heap(int m, PComparator c)
+  : m_(m), comp_(c)
+{
+}
+
+template <typename T, typename PComparator>
+Heap<T,PComparator>::~Heap()
+{
+}
+
+template <typename T, typename PComparator>
+bool Heap<T,PComparator>::empty() const
+{
+  return data_.empty();
+}
+
+template <typename T, typename PComparator>
+size_t Heap<T,PComparator>::size() const
+{
+  return data_.size();
+}
+
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item)
+{
+  data_.push_back(item);
+  trickleUp(data_.size() - 1);
+}
+
+// Swap a node upward while it has priority over its parent
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::trickleUp(size_t idx)
+{
+  while (idx > 0) {
+    size_t parent = (idx - 1) / m_;
+    if (!comp_(data_[idx], data_[parent])) {
+      break;
+    }
+    std::swap(data_[idx], data_[parent]);
+    idx = parent;
+  }
+}
+
+// Swap a node downward with its best child until heap order holds
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::trickleDown(size_t idx)
+{
+  size_t n = data_.size();
+  while (true) {
+    size_t first = m_ * idx + 1;
+    if (first >= n) {
+      break;  // leaf
+    }
+    size_t best = first;
+    for (size_t c = first + 1; c < first + m_ && c < n; ++c) {
+      if (comp_(data_[c], data_[best])) {
+        best = c;
+      }
+    }
+    if (!comp_(data_[best], data_[idx])) {
+      break;
+    }
+    std::swap(data_[best], data_[idx]);
+    idx = best;
+  }
+}
 
 
 // We will start top() for you to handle the case of 
@@ -81,14 +156,11 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
-
-
+    throw std::underflow_error("top() called on empty heap");
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
-
-
-
+  return data_[0];
 }
 
 
@@ -101,12 +173,15 @@ void Heap<T,PComparator>::pop()
     // ================================
     // throw the appropriate exception
     // ================================
-
-
+    throw std::underflow_error("pop() called on empty heap");
   }
 
-
-
+  // Move the last item to the root, shrink, then restore order
+  data_[0] = data_.back();
+  data_.pop_back();
+  if (!data_.empty()) {
+    trickleDown(0);
+  }
 }
 
 

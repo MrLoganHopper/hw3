@@ -84,7 +84,23 @@ Node* llfilter(Node* head, Comp pred)
     // Provide your implementation below
     //*********************************************
 
+    // Base case: empty list
+    if (head == NULL) {
+        return NULL;
+    }
 
+    // Filter the rest of the list first
+    Node* rest = llfilter(head->next, pred);
+
+    // Remove this node if the predicate says so
+    if (pred(head->val)) {
+        delete head;
+        return rest;
+    }
+
+    // Keep this node and attach the filtered remainder
+    head->next = rest;
+    return head;
 }
 
 #endif
